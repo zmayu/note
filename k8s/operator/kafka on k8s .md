@@ -5,7 +5,8 @@
 但是对于一些复杂的中间件服务，如果还用这些基础服务部署的话，部署过程会非常麻烦。对于计算机来说，任何一个问题都可以通过增加一个中间层来解决。
 因为我们增加了一个中间层。通过自定义资源crd模式来实现快速部署复杂中间件。
 
-![img.png](../../../img.png)
+![image](https://github.com/zmayu/note/assets/28054451/88486c23-2219-4fcf-8749-f7e30431fe6a)
+
 
 我理解operator主要做两件事，定义crd和controller.
 ```
@@ -139,7 +140,8 @@ spec:
 kubectl get secret -n 名称空间 ｜grep 用户名称
 kubectl get secret/secret名称 -n 名称空间
 ```
-![img_1.png](../../../img_1.png)
+<img width="1325" alt="image" src="https://github.com/zmayu/note/assets/28054451/fdbd7879-903e-48ff-bfe6-8a4b7ba6f633">
+
 将password base64解码即为用户的密码
 
 
