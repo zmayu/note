@@ -18,7 +18,7 @@ Helm是管理Kubernetes包的工具，Helm能提供以下能力：
 
 ### 	1.1 Helm2版本的介绍
 
-​		![image-20200924115015674](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924115015674.png)	
+![image](https://github.com/zmayu/note/assets/28054451/cbb48845-4b01-4a35-bf2e-7f1767e9cf69)
 
 Helm架构由Helm客户端，Till服务器端和chart仓库组成，Tiller部署在Kubernetes中，Helm客户端从Chart仓库中获取Chart安装包，并将其部署到Kubernetes中，
 
@@ -30,7 +30,7 @@ Helm 2采用客户端/服务器架构，有如下组件（概念）组成：
 - **Repository:** 用于发布和存储 Chart 的仓库。
 - **Release:** 可以理解成 Chart 部署的一个实例。通过 Chart 在 Kubernetes 中部署的应用都会产生一个唯一的 Release，即使是同一个 Chart，部署多次就会产生多个 Release。
 
-### 	1.2 Helm3版本的介绍			![FFC25686-4123-4D4A-80A1-500F88F54720](/var/folders/sy/sqd8vbyj0_125jq8vb2dhws00000gn/T/com.yinxiang.Mac/WebKitDnD.wxCLuV/FFC25686-4123-4D4A-80A1-500F88F54720.png)
+### 	1.2 Helm3版本的介绍		
 
 在 Helm 3 中移除了 `Tiller`，其余内容与helm2基本相同。 版本相关的数据直接存储在了 Kubernetes 中。主要关注简单性、安全性和可用性。
 
@@ -268,25 +268,23 @@ mychart
 
 #### 5.4 在TKE中通过Helm Chart部署应用
 
-- #### 新建应用	![image-20200924185156813](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924185156813.png)
-
-![image-20200924185242422](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924185242422.png)
+- #### 新建应用	
 
 选择对应的Chart版本，同时我们也可以自主更高values.yaml文件
 
 为了方便在公网访问，我们将type: NodePort改为 type: **LoadBalancer**
 
-![image-20200924185919188](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924185919188.png)
+
 
 点击完成，成功创建我们的应用
 
-![image-20200924190241429](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924190241429.png)
+
 
 - 访问测试
 
   在对应集群找到service的LoadBalance Ip
 
-![image-20200924190754503](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924190754503.png)
+
 
 ```
 curl http://LoadbalanceIp:服务端口
@@ -298,6 +296,5 @@ curl http://LoadbalanceIp:服务端口
 
 - 回滚应用
 
-  ![image-20200924192415720](/Users/zmayu/Library/Application Support/typora-user-images/image-20200924192415720.png)
-
+ 
 在应用的详情里面可以看到关于应用的各个历史版本，并且支持回滚到指定的历史版本。
