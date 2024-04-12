@@ -143,7 +143,8 @@ PING 192.168.99.2 (192.168.99.2) 56(84) bytes of data.
 
 网络拓扑图
 
-![image-20201104171538238](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104171538238.png)
+![image](https://github.com/zmayu/note/assets/28054451/0e61521b-5b1e-46af-94be-fb1540b0c965)
+
 
 #### 1.3 linux  bridge网桥的介绍使用
 
@@ -341,8 +342,7 @@ ip netns exec ns1 ping 10.10.20.10
 
 ##### 1.4.9 网络架构图
 
-![image-20201104195029351](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104195029351.png)
-
+![image](https://github.com/zmayu/note/assets/28054451/005db7e8-e019-432a-84c4-7783d20a7471)
 
 
 ### 二： Docker中的网络
@@ -487,7 +487,7 @@ kube-apiserver
 
 - 架构图
 
-  ![image-20201106160733677](/Users/zmayu/Library/Application Support/typora-user-images/image-20201106160733677.png)
+![image](https://github.com/zmayu/note/assets/28054451/2c390cfa-a807-4156-8e78-c8e747d82473)
 
   **说明**：Node1和Node2是k8s集群中的两个节点，现在Node2中启动pod-n(nginx容器，监听80端口)。在Node1中启动pod-m,并在pod-m访问pod-n。
 
@@ -531,7 +531,7 @@ kube-apiserver
   FLANNEL_IPMASQ=true
   ```
 
-  ![image-20201106150935747](/Users/zmayu/Library/Application Support/typora-user-images/image-20201106150935747.png)
+  ![image](https://github.com/zmayu/note/assets/28054451/c452df62-fb28-40bb-a807-74572c354023)
 
 - 组件解释
 
@@ -597,7 +597,7 @@ kube-apiserver
 
 **最外层协议信息**
 
-![image-20201104211508239](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104211508239.png)
+![image](https://github.com/zmayu/note/assets/28054451/471ad3b6-23b2-491a-b448-801b66259d3f)
 
 ```
 MAC地址：
@@ -615,7 +615,7 @@ UDP端口
 
 **内层协议信息**
 
-![image-20201104212928637](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104212928637.png)
+![image](https://github.com/zmayu/note/assets/28054451/8602c219-521a-4935-b895-189a5c76e514)
 
 ```
 VXLAN header
@@ -632,7 +632,7 @@ MAC地址：
    目的地址: 		b2 c5 b5 fe 50 b8
 ```
 
-![image-20201104213246484](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104213246484.png)
+![image](https://github.com/zmayu/note/assets/28054451/e2688196-4ae7-42a6-b6ca-59e6d1538157)
 
 ```
 IP地址：
@@ -640,7 +640,7 @@ IP地址：
 	 目的IP:   0a f4 02 09   --> 10.244.2.9
 ```
 
-![image-20201104213703464](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104213703464.png)
+![image](https://github.com/zmayu/note/assets/28054451/84b8a54c-f274-4ab2-aaf6-a0981cba6e12)
 
 ```
 TCP端口号：
@@ -658,7 +658,7 @@ TCP端口号：
 
 ​	因为Machine A和Machine B处于同一个子网内，它们原本就能直接互相访问。因此最简单的方法是：在Machine A中的容器要访问Machine B的容器时，我们可以将Machine B看成是网关，当有封包的目的地址在subnet 10.1.16.0/24范围内时，就将其直接转发至B即可。
 
-​	![image-20201106172905275](/Users/zmayu/Library/Application Support/typora-user-images/image-20201106172905275.png)
+![image](https://github.com/zmayu/note/assets/28054451/b2889f27-c308-4929-8c8a-597591d5a381)
 
 ```
 图中那条红色标记的路由就能完成：我们从etcd中监听到一个EventAdded事件subnet为10.1.15.0/24被分配给主机Machine A Public IP 192.168.0.100，hostgw要做的工作就是在本主机上添加一条目的地址为10.1.15.0/24，网关地址为192.168.0.100，输出设备为上文中选择的集群间交互的网卡即可。对于EventRemoved事件，只需删除对应的路由。
@@ -674,7 +674,7 @@ TCP端口号：
 而udp类型backend的基本思想是：既然主机之间是可以相互通信的（并不要求主机在一个子网中），那么我们为什么不能将容器的网络封包作为负载数据在集群的主机之间进行传输呢？这就是所谓的overlay。具体过程如图所示
 ```
 
-​	![image-20201106173428376](/Users/zmayu/Library/Application Support/typora-user-images/image-20201106173428376.png)
+![image](https://github.com/zmayu/note/assets/28054451/18aedaa9-70f4-45df-91d2-f85a2be383ec)
 
 ```
 当容器10.1.15.2/24要和容器10.1.20.3/24通信时：
@@ -692,7 +692,7 @@ TCP端口号：
 首先，我们对vxlan的基本原理进行简单的叙述。从下图所示的封包结构来看，vxlan和上文提到的udp backend的封包结构是非常类似的，不同之处是多了一个vxlan header，以及原始报文中多了个二层的报头。
 ```
 
-![image-20201106173707975](/Users/zmayu/Library/Application Support/typora-user-images/image-20201106173707975.png)
+![image](https://github.com/zmayu/note/assets/28054451/9df21037-8d8c-438e-a8cf-24238ebaebf8)
 
 ```
 如上图所示，当主机B加入flannel网络时，和其他所有backend一样，它会将自己的subnet 10.1.16.0/24和Public IP 192.168.0.101写入etcd中，和其他backend不一样的是，它还会将vtep设备flannel.1的mac地址也写入etcd中。
@@ -977,8 +977,8 @@ Calico 是一种容器之间互通的网络方案。在虚拟化平台中，比�
 
   容器2请求容器1，如下为抓包内容
 
-  ![image-20201110100715836](/Users/zmayu/Library/Application Support/typora-user-images/image-20201110100715836.png)
-  
+![image](https://github.com/zmayu/note/assets/28054451/6cabba49-7605-4938-ab73-4df0bf7b817a)
+
   ***
   
   ​	封包的时候是从上往下进行封包。
@@ -1211,7 +1211,7 @@ flannel network： 即Pod网络，集群中承载各个Pod相互通信的网络�
 
  
 
-![image-20201022204428069](/Users/zmayu/Library/Application Support/typora-user-images/image-20201022204428069.png)
+![image](https://github.com/zmayu/note/assets/28054451/926a568b-7d77-4938-9655-83f7d2bb7a5f)
 
 MAC
 
@@ -1237,7 +1237,7 @@ MAC
 
 目的Mac: b2 c5 b5 fe 50 b8
 
-![image-20201022201436142](/Users/zmayu/Library/Application Support/typora-user-images/image-20201022201436142.png)
+![image](https://github.com/zmayu/note/assets/28054451/1ff05235-3603-4bfd-9085-1db53acd4c17)
 
 IP
 
@@ -1245,7 +1245,7 @@ IP
 
 目的IP:0a f4 02 09   -->. 10.244.2.9
 
-![image-20201022201848382](/Users/zmayu/Library/Application Support/typora-user-images/image-20201022201848382.png)
+![image](https://github.com/zmayu/note/assets/28054451/31b33d38-da1c-4140-9a6b-6aee55c566e1)
 
 
 
@@ -1255,4 +1255,4 @@ TCP
 
 8b 58:目的端口号: 35672
 
-![image-20201022202324780](/Users/zmayu/Library/Application Support/typora-user-images/image-20201022202324780.png)
+![image](https://github.com/zmayu/note/assets/28054451/9d57f039-1009-41f6-93ca-a5cd0b39e5e5)
