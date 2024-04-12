@@ -281,7 +281,8 @@ Destination     Gateway         Genmask         Flags Metric Ref    Use Iface
 
 ##### 1.4.12 网络架构图
 
-![image-20201104182309954](/Users/zmayu/Library/Application Support/typora-user-images/image-20201104182309954.png)
+![image](https://github.com/zmayu/note/assets/28054451/b15e754c-498f-491f-8ecf-a07c2d518005)
+
 
 #### 1.4 多个network namespace之间的通信（不同网段）
 
