@@ -8,10 +8,7 @@
 
 #### 1.1 Network namespace介绍
 
-```
-network namespace是实现网络虚拟化的重要功能，它能创建多个隔离的网络空间，它们拥有独立的网络栈信息。Linux下的每一个进程都会属于一个特定的network namespace。对于每一个network namespace来说，他会有自己独立的网卡、路由表、ARP表、iptables等和网络相关的资源。新建的网络名称空间与主机默认网络名称空间之间是隔离的。我们平时默认操作的是主机的默认名称空间，默认名称空间是default。  ip命令提供了ip netns exec 子命令可以在对应的network namespace中执行命令。
-
-```
+> network namespace是实现网络虚拟化的重要功能，它能创建多个隔离的网络空间，它们拥有独立的网络栈信息。Linux下的每一个进程都会属于一个特定的network namespace。对于每一个network namespace来说，他会有自己独立的网卡、路由表、ARP表、iptables等和网络相关的资源。新建的网络名称空间与主机默认网络名称空间之间是隔离的。我们平时默认操作的是主机的默认名称空间，默认名称空间是default。  ip命令提供了ip netns exec 子命令可以在对应的network namespace中执行命令。
 
 #### 1.2 使用ip命令操作netnamespace
 
@@ -38,8 +35,9 @@ Usage: ip netns list
        ip [-all] netns exec [NAME] cmd ...
        ip netns monitor
        ip netns list-id
-使用ip netns 创建的network namespace都会出现在/var/run/netns/目录下，如果需要管理其他不是由ip netns 创建的network namespace，只要在这个目录下创建一个指向对应network namespace文件的链接就行。       
 ```
+> 使用ip netns 创建的network namespace都会出现在/var/run/netns/目录下，如果需要管理其他不是由ip netns 创建的network namespace，只要在这个目录下创建一个指向对应network namespace文件的链接就行。
+
 
 #####     1.2.3 创建network namespace
 
@@ -71,7 +69,7 @@ net1
 ```
 VETH (Virtual Ethernet) veth-pair
     是Linux提供的的一种特殊的虚拟网络设备，称为虚拟网络接口。它总是成对出现.一端连着协议栈，一端彼此相连着。
-    正因为这个特效，它常常充当着一个桥梁，连接各种虚拟网络设备。典型的例子如”两个namespace之间的连接”，“Bridge,OVS之间的		 连接”，“Docker容器之间的连接”等等，以此构建出非常复杂的虚拟网络结构。
+    正因为这个特效，它常常充当着一个桥梁，连接各种虚拟网络设备。典型的例子如”两个namespace之间的连接”，“Bridge,OVS之间的连接”，“Docker容器之间的连接”等等，以此构建出非常复杂的虚拟网络结构。
     如果各个namespace之间需要通信，可以通过veth-pair来做桥梁。
 根据连接的方式和规模，可以分为“直接相连“，”通过Bridge相连“，“通过OVS相连”
   *直接相连
