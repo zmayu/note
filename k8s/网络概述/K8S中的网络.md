@@ -536,7 +536,7 @@ kube-apiserver
 
 - 组件解释
 
-  **cni0:**网桥设备，每创建一个pod都会创建一对veth pair,其中一端放在pod,即pod中的eth0,另一段挂载到cni0上，从pod中发出的流量都会到达cni0网桥
+  **cni0**:网桥设备，每创建一个pod都会创建一对veth pair,其中一端放在pod,即pod中的eth0,另一段挂载到cni0上，从pod中发出的流量都会到达cni0网桥
 
   ```
   cni0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1450 qdisc noqueue state UP group default 
@@ -555,11 +555,14 @@ kube-apiserver
       valid_lft forever preferred_lft forever
   ```
 
-  **flanneld:**在每个主机中运行flanneld作为agent，它会为所在主机从集群的网络地址空间中，获取一个小的网段subnet，本主机内所有容器的IP地址都将从中分配。同时Flanneld监听K8s集群数据库，为flannel.1设备提供封装数据时必要的mac，ip等网络数据信息。
+  **flanneld**:在每个主机中运行flanneld作为agent，它会为所在主机从集群的网络地址空间中，获取一个小的网段subnet，本主机内所有容器的IP地址都将从中分配。同时Flanneld监听K8s集群数据库，为flannel.1设备提供封装数据时必要的mac，ip等网络数据信息。
 
 
 
-​		**疑惑：**这里对于flannel.1进行vxlan报文的封包和解包表示不敢认同，首先flannel.1即是一个tun/tap设备，这个设备负责是流量的传输，真正处理vxlan报文的应该是flanneld。
+  ​**疑惑**：这里对于flannel.1进行vxlan报文的封包和解包表示不敢认同，首先flannel.1即是一个tun/tap设备，这个设备负责是流量的传输，真正处理vxlan报文的应该是flanneld。
+
+  **解答**：2024.05.17 这里确实是flannel.1进行vxlan报文的封包和解包，flannel.1是一个虚拟的网卡设备。一般物理网卡的数据的读写方是网线侧和内核侧，而现在flanneld充当了网线侧的功能。一般内核侧把数据发到网卡，网卡把数据沿着网线侧发走。而这里内核把数据发到虚拟网卡flannel.1，最后是flanneld读走了数据，这个数据就是网络包。
+		
 
 
 
