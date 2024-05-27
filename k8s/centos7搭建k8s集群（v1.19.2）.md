@@ -249,6 +249,7 @@ EOF
 修改cgroupdriver是为了消除告警：
 [WARNING IsDockerSystemdCheck]: detected “cgroupfs” as the Docker cgroup driver. The recommended driver is “systemd”. Please follow the guide at <https://kubernetes.io/docs/setup/cri/>
 
+在1.20以上的版本中，kubelet使用的驱动是systemd，不再是cgroupfs，所以如果使用docker作为运行时，就需要将docker的驱动也改为systemd。
 # 四、k8s安装
 
 master node节点都执行本部分操作。
@@ -336,13 +337,13 @@ service-cidr=10.96.0.0/12 指定service clusterip的取值范围
 pod-network-cider=10.244.0.0/16 指定pod的ip取值范围
 
 ```
+出现如下内容，即表明k8s的控制面已经安装完成
+<img width="1467" alt="image" src="https://github.com/zmayu/note/assets/28054451/1c3401ea-ab79-41b5-919d-1bee4517a201">
+
 
 记录kubeadm join的输出，后面需要这个命令将node节点和其他control plane节点加入集群中。
 
-```shell
-kubeadm join 192.168.175.128:6443 --token 4xpmwx.nw6psmvn9qi4d3cj \
->     --discovery-token-ca-cert-hash sha256:c7cbe95a66092c58b4da3ad20874f0fe2b6d6842d28b2762ffc8d36227d
-```
+
 
 **初始化失败：**
 
@@ -353,7 +354,7 @@ kubeadm join 192.168.175.128:6443 --token 4xpmwx.nw6psmvn9qi4d3cj \
 [root@master ~] rm -rf $HOME/.kube/config
 ```
 
-## 3. 加载环境变量
+## 3. 加载环境变量，使kubelet能够读取并进行apiserver的连接
 
 ```shell
 [root@master ~] echo "export KUBECONFIG=/etc/kubernetes/admin.conf" >> ~/.bash_profile
@@ -383,8 +384,10 @@ EOF
 ### 4.2 在master上新建flannel网络
 
 ```shell
-[root@master ~] kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
+[root@master ~] wget  https://raw.githubusercontent.com/coreos/flannel/2140ac876ef134e0ed5af15c65e414cf26827915/Documentation/kube-flannel.yml
 ```
+将flannel的配置文件download本地后，编辑文件，将容器网络地址更改为5.1中规划的pod-network-cidr
+
 
 # 六、node节点加入集群
 
