@@ -1,10 +1,11 @@
 
 ### 技巧：
 #### kubelet的日志输出到指定目录
+##### 背景
 * 通过日志来详细了解kubelet的运行机制以及通过日志观察kubelet的运行情况
 * kubelet是通过systemd启动的，默认是输出到了/var/log/messages文件中了，但是这个文件内容是包括了所有通过systemd启动的服务日志
   
-解决方式
+##### 解决方式
 
 * 在systemd日志的输出中添加kubelet标识
   * 这一步可以不进行操作，目前在centos、k8s-1.23版本验证，这一步免操作。
@@ -45,12 +46,26 @@ if $programname == 'kubelet' then /var/log/kubelet/kubelet.log
           endscript
       }
 ```
+
+* 调整日志级别
+```
+vim /var/lib/kubelet/config.yaml
+
+logging:
+  flushFrequency: 0
+  options:
+    json:
+      infoBufferSize: "0"
+  #debug 级别
+  verbosity: 5  
+```
 * 重启日志服务和kublet
 ```
     systemctl restart rsyslog
     systemctl daemon-reload
     systemctl restart kubelet
 ```
+
 
 
 
