@@ -1,9 +1,9 @@
 
 
-### secrect、configmap 介绍
+# secrect、configmap 介绍
 
 
-### kubelet中对于secrect、configmap代码流程
+## kubelet中对于secrect、configmap代码流程
 
 #### secectManager和configmap的创建策略
 ```go
@@ -32,6 +32,7 @@ switch kubeCfg.ConfigMapAndSecretChangeDetectionStrategy {
 
 
 #### 创建secrect、configmap manager(以WatchChangeDetectionStrategy为例)
+
 * 创建watch configmap manager
 ``` go
 func NewWatchingConfigMapManager(kubeClient clientset.Interface, resyncInterval time.Duration) Manager {
@@ -59,7 +60,7 @@ func NewWatchingConfigMapManager(kubeClient clientset.Interface, resyncInterval 
 ```
 
 * 创建watch secret manager
-  以NewWatchingSecretManager为例，里面有listWatch的方法，最终的实现方式为WatchBasedManager，通过watchApiserver的方式获取secrect配置
+  里面有listWatch的方法，最终的实现方式为WatchBasedManager，通过watchApiserver的方式获取secrect配置
 ```go 
 func NewWatchingSecretManager(kubeClient clientset.Interface, resyncInterval time.Duration) Manager {
 	listSecret := func(namespace string, opts metav1.ListOptions) (runtime.Object, error) {
