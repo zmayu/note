@@ -68,6 +68,447 @@ logging:
 
 
 
+#### 分析docker-shim的代码，了解sandbox容器和业务容器是如何组合成一个pod
+
+
+#### 理解pod.ID的概念，如何正确的理解。
+  * 在pleg里面通过pod.ID关联了podStatus 
+  * 对于每一个pod，kubelet都会启动一个协程managePodLoop()
+
+  ```go
+  # 其实这里也是很好理解，对于容器运行时，如何区分和管理容器，站在容器的角度，它是没有一个pod的概念，只能去通过名字进行区分。
+   对于容器会有很多状态，那么这些状态要映射到pod的状态
+  //k8s_POD_nginx-deployment-9456bbbf9-lqfrp_default_6a9c450a-d36a-4da0-8bdc-6e5d3e603a9d_0
+  /*
+  k8s_POD_nginx-deployment-9456bbbf9-lqfrp_default_6a9c450a-d36a-4da0-8bdc-6e5d3e603a9d_0
+  k8s_nginx_nginx-deployment-9456bbbf9-lqfrp_default_6a9c450a-d36a-4da0-8bdc-6e5d3e603a9d_0
+
+  kublet是如何进行区分容器是sandbox还是container,是通过名称进行区分。对名称进行下划线_分割。
+  parts[0] = k8s            : 说明该容器是由k8s管理创建
+  parts[1] = POD/nginx      : POD说明该容器是sandbox，nignx说明是业务容器，ningx为容器的名称
+  parts[2] = pod name       : nginx-deployment-9456bbbf9-lqfrp
+  parts[3] = pod namespace  : default
+  parts[4] = pod uid        : 6a9c450a-d36a-4da0-8bdc-6e5d3e603a9d
+  parts[4] = pod attempt    : 0 
+
+  sandbox.id : 为容器的id
+  sandbox.Metadat.Uid : 为pod的id,通过这个uid将sandbox和container绑定关联在一起。
+  sandbox.Metadat.Uid 就是pod uid
+  */
+
+  // 
+  return &runtimeapi.PodSandboxMetadata{
+		Name:      parts[2],
+		Namespace: parts[3],
+		Uid:       parts[4],
+		Attempt:   attempt,
+	}
+  ```
+
+"SyncLoop DELETE" source="api" pods=[default/nginx-deployment-9456bbbf9-cvrr7]
+"Pod is marked for graceful deletion, begin teardown" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Processing pod event" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 updateType=1
+"Pod worker has observed request to terminate" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+ "syncTerminatingPod enter" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Generating pod status" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+"Got phase for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" oldPhase=Running phase=Running
+"Pod terminating with grace period" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 gracePeriod=30
+"Killing container with a grace period override" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" gracePeriod=30
+"Killing container with a grace period" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" gracePeriod=30
+"Event occurred" object="default/nginx-deployment-9456bbbf9-cvrr7" kind="Pod" apiVersion="v1" type="Normal" reason="Killing" message="Stopping container nginx"
+"Patch status for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" patch="{\"metadata\":{\"uid\":\"4f3761db-ee39-4974-a2cc-9bf0a48e5c13\"}}"
+"Status for pod is up-to-date" pod="default/nginx-deployment-9456bbbf9-cvrr7" statusVersion=2
+"Pod is terminated, but some containers are still running" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+Destroyed container: "/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod4f3761db_ee39_4974_a2cc_9bf0a48e5c13.slice/docker-dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c.scope" (aliases: [k8s_nginx_nginx-deployment-9456bbbf9-cvrr7_default_4f3761db-ee39-4974-a2cc-9bf0a48e5c13_0 dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c], namespace: "docker")
+"Container exited normally" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c"
+"Calling network plugin to tear down the pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" networkPluginName="cni"
+"Deleting pod from network" pod="default/nginx-deployment-9456bbbf9-cvrr7" podSandboxID={Type:docker ID:df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a} podNetnsPath="/proc/28118/ns/net" networkType="loopback" networkName="cni-loopback"
+ "Deleted pod from network" pod="default/nginx-deployment-9456bbbf9-cvrr7" podSandboxID={Type:docker ID:df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a} networkType="loopback" networkName="cni-loopback"
+"Deleting pod from network" pod="default/nginx-deployment-9456bbbf9-cvrr7" podSandboxID={Type:docker ID:df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a} podNetnsPath="/proc/28118/ns/net" networkType="calico" networkName="k8s-pod-network"
+
+
+ "SyncLoop DELETE" source="api" pods=[default/nginx-deployment-9456bbbf9-cvrr7]
+"Deleted pod from network" pod="default/nginx-deployment-9456bbbf9-cvrr7" podSandboxID={Type:docker ID:df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a} networkType="calico" networkName="k8s-pod-network"
+ Destroyed container: "/kubepods.slice/kubepods-besteffort.slice/kubepods-besteffort-pod4f3761db_ee39_4974_a2cc_9bf0a48e5c13.slice/docker-df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a.scope" (aliases: [k8s_POD_nginx-deployment-9456bbbf9-cvrr7_default_4f3761db-ee39-4974-a2cc-9bf0a48e5c13_0 df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a], namespace: "docker")
+"getSandboxIDByPodUID got sandbox IDs for pod" podSandboxID=[df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a] pod="default/nginx-deployment-9456bbbf9-cvrr7"
+"Post-termination container state" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containers="(nginx state=exited exitCode=0 finishedAt=2024-06-07T06:54:46.591410983Z)"
+ "Pod termination stopped all running containers" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"syncTerminatingPod exit" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod terminated all containers successfully" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Processing pod event done" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 updateType=1
+"Processing pod event" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 updateType=2
+ "Removing volume from desired state" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 volumeName="kube-api-access-cfqv5"
+"getSandboxIDByPodUID got sandbox IDs for pod" podSandboxID=[df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a] pod="default/nginx-deployment-9456bbbf9-cvrr7"
+"PLEG: Write status" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+
+
+ "SyncLoop (PLEG): event for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" event=&{ID:4f3761db-ee39-4974-a2cc-9bf0a48e5c13 Type:ContainerDied Data:dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c}
+"syncTerminatedPod enter" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Generating pod status" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+
+
+"SyncLoop (PLEG): event for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" event=&{ID:4f3761db-ee39-4974-a2cc-9bf0a48e5c13 Type:ContainerDied Data:df89af7490d2456a7698b2773e44f08eb593c27319080676a6a27811e95d800a}
+"Got phase for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" oldPhase=Running phase=Running
+"Waiting for volumes to unmount for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+"All volumes are unmounted for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+ "Pod termination unmounted volumes" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod termination removed cgroups" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod is terminated and will need no more status updates" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"syncTerminatedPod exit" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod is complete and the worker can now stop" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Processing pod event done" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 updateType=2
+
+
+ "SyncLoop RECONCILE" source="api" pods=[default/nginx-deployment-9456bbbf9-cvrr7]
+ "Patch status for pod" pod="default/nginx-deployment-9456bbbf9-cvrr7" patch=
+{
+    "metadata": {
+        "uid": "4f3761db-ee39-4974-a2cc-9bf0a48e5c13"
+    },
+    "status": {
+        "$setElementOrder/conditions": [
+            {
+                "type": "Initialized"
+            },
+            {
+                "type": "Ready"
+            },
+            {
+                "type": "ContainersReady"
+            },
+            {
+                "type": "PodScheduled"
+            }
+        ],
+        "conditions": [
+            {
+                "lastTransitionTime": "2024-06-07T06:54:47Z",
+                "message": "containers with unready status: [nginx]",
+                "reason": "ContainersNotReady",
+                "status": "False",
+                "type": "Ready"
+            },
+            {
+                "lastTransitionTime": "2024-06-07T06:54:47Z",
+                "message": "containers with unready status: [nginx]",
+                "reason": "ContainersNotReady",
+                "status": "False",
+                "type": "ContainersReady"
+            }
+        ],
+        "containerStatuses": [
+            {
+                "containerID": "docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c",
+                "image": "nginx:1.14.2",
+                "imageID": "docker-pullable://nginx@sha256:f7988fb6c02e0ce69257d9bd9cf37ae20a60f1df7563c3a2a6abe24160306b8d",
+                "lastState": {
+
+                },
+                "name": "nginx",
+                "ready": false,
+                "restartCount": 0,
+                "started": false,
+                "state": {
+                    "terminated": {
+                        "containerID": "docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c",
+                        "exitCode": 0,
+                        "finishedAt": "2024-06-07T06:54:46Z",
+                        "reason": "Completed",
+                        "startedAt": "2024-05-29T06:42:45Z"
+                    }
+                }
+            }
+        ]
+    }
+}
+
+
+
+
+
+ "Status for pod updated successfully" pod="default/nginx-deployment-9456bbbf9-cvrr7" statusVersion=3 status={Phase:Running Conditions:[{Type:Initialized Status:True LastProbeTime:0001-01-01 00:00:00 +0000 UTC LastTransitionTime:2024-05-29 14:42:44 +0800 CST Reason: Message:} {Type:Ready Status:False LastProbeTime:0001-01-01 00:00:00 +0000 UTC LastTransitionTime:2024-06-07 14:54:47 +0800 CST Reason:ContainersNotReady Message:containers with unready status: [nginx]} {Type:ContainersReady Status:False LastProbeTime:0001-01-01 00:00:00 +0000 UTC LastTransitionTime:2024-06-07 14:54:47 +0800 CST Reason:ContainersNotReady Message:containers with unready status: [nginx]} {Type:PodScheduled Status:True LastProbeTime:0001-01-01 00:00:00 +0000 UTC LastTransitionTime:2024-05-29 14:42:44 +0800 CST Reason: Message:}] Message: Reason: NominatedNodeName: HostIP:9.135.91.57 PodIP:172.16.219.71 PodIPs:[{IP:172.16.219.71}] StartTime:2024-05-29 14:42:44 +0800 CST InitContainerStatuses:[] ContainerStatuses:[{Name:nginx State:{Waiting:nil Running:nil Terminated:&ContainerStateTerminated{ExitCode:0,Signal:0,Reason:Completed,Message:,StartedAt:2024-05-29 14:42:45 +0800 CST,FinishedAt:2024-06-07 14:54:46 +0800 CST,ContainerID:docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c,}} LastTerminationState:{Waiting:nil Running:nil Terminated:nil} Ready:false RestartCount:0 Image:nginx:1.14.2 ImageID:docker-pullable://nginx@sha256:f7988fb6c02e0ce69257d9bd9cf37ae20a60f1df7563c3a2a6abe24160306b8d ContainerID:docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c Started:0xc0021010cc}] QOSClass:BestEffort EphemeralContainerStatuses:[]}
+
+"Pod is terminated and all resources are reclaimed" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+
+
+"SyncLoop DELETE" source="api" pods=[default/nginx-deployment-9456bbbf9-cvrr7]
+"Pod is finished processing, no further updates" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod fully terminated and removed from etcd" pod="default/nginx-deployment-9456bbbf9-cvrr7"
+
+
+"SyncLoop REMOVE" source="api" pods=[default/nginx-deployment-9456bbbf9-cvrr7]
+ "Pod has been deleted and must be killed" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod is finished processing, no further updates" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+ "Pod does not exist on the server" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 pod="default/nginx-deployment-9456bbbf9-cvrr7"
+ "Pod is being synced for the first time" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+ "Pod is orphaned and must be torn down" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Processing pod event" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 updateType=1
+"Pod worker has observed request to terminate" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"syncTerminatingPod enter" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+"Pod terminating with grace period" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 gracePeriod=1
+"Killing container with a grace period override" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" gracePeriod=1
+ "Killing container with a grace period" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" gracePeriod=1
+"Event occurred" object="default/nginx-deployment-9456bbbf9-cvrr7" kind="Pod" apiVersion="v1" type="Normal" reason="Killing" message="Stopping container nginx"
+"Container termination failed with gracePeriod" err="rpc error: code = Unknown desc = Error response from daemon: No such container: dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID="docker://dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" gracePeriod=1
+ "Kill container failed" err="rpc error: code = Unknown desc = Error response from daemon: No such container: dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13 containerName="nginx" containerID={Type:docker ID:dc18bc33e7914de8b6db57585ce56f2fbbb36c8deab970d5d0014f882ce1748c}
+ "syncTerminatingPod exit" pod="default/nginx-deployment-9456bbbf9-cvrr7" podUID=4f3761db-ee39-4974-a2cc-9bf0a48e5c13
+^C
+
+
+
+
+
+
+
+
+
+
+
+
+
+#### kubelet目录功能介绍
+
+├── OWNERS
+├── active_deadline.go
+├── active_deadline_test.go
+├── apis
+├── cadvisor
+├── certificate
+├── checkpointmanager
+├── client
+├── cloudresource
+├── cm
+├── config
+├── configmap
+├── container
+├── cri
+├── custommetrics
+├── doc.go
+├── dockershim
+├── envvars
+├── errors.go
+├── events
+├── eviction
+├── images
+├── kubelet.go
+├── kubelet_dockerless_test.go
+├── kubelet_dockershim.go
+├── kubelet_dockershim_nodocker.go
+├── kubelet_getters.go
+├── kubelet_getters_test.go
+├── kubelet_network.go
+├── kubelet_network_linux.go
+├── kubelet_network_others.go
+├── kubelet_network_test.go
+├── kubelet_node_status.go
+├── kubelet_node_status_others.go
+├── kubelet_node_status_test.go
+├── kubelet_node_status_windows.go
+├── kubelet_pods.go
+├── kubelet_pods_linux_test.go
+├── kubelet_pods_test.go
+├── kubelet_pods_windows_test.go
+├── kubelet_resources.go
+├── kubelet_resources_test.go
+├── kubelet_test.go
+├── kubelet_volumes.go
+├── kubelet_volumes_linux_test.go
+├── kubelet_volumes_test.go
+├── kubeletconfig
+├── kuberuntime
+├── leaky
+├── legacy
+├── lifecycle
+├── logs
+├── metrics
+├── network
+├── nodeshutdown
+├── nodestatus
+├── oom
+├── pleg
+├── pluginmanager
+├── pod
+├── pod_container_deletor.go
+├── pod_container_deletor_test.go
+├── pod_workers.go
+├── pod_workers_test.go
+├── preemption
+├── prober
+├── qos
+├── reason_cache.go
+├── reason_cache_test.go
+├── runonce.go
+├── runonce_test.go
+├── runtime.go
+├── runtimeclass
+├── secret
+├── server
+├── stats
+├── status
+├── sysctl
+├── time_cache.go
+├── time_cache_test.go
+├── token
+├── types
+├── util
+├── volume_host.go
+├── volumemanager
+└── winstats
+
+
+.
+├── apis
+│   ├── config
+│   │   ├── fuzzer
+│   │   ├── scheme
+│   │   │   └── testdata
+│   │   │       ├── KubeletConfiguration
+│   │   │       │   ├── after
+│   │   │       │   ├── before
+│   │   │       │   └── roundtrip
+│   │   │       │       └── default
+│   │   │       └── SerializedNodeConfigSource
+│   │   │           ├── after
+│   │   │           ├── before
+│   │   │           └── roundtrip
+│   │   │               └── default
+│   │   ├── v1alpha1
+│   │   ├── v1beta1
+│   │   └── validation
+│   └── podresources
+│       └── testing
+├── cadvisor
+│   └── testing
+├── certificate
+│   └── bootstrap
+│       └── testdata
+├── checkpointmanager
+│   ├── checksum
+│   ├── errors
+│   └── testing
+│       └── example_checkpoint_formats
+│           └── v1
+├── client
+├── cloudresource
+├── cm
+│   ├── admission
+│   ├── containermap
+│   ├── cpumanager
+│   │   ├── state
+│   │   │   └── testing
+│   │   └── topology
+│   ├── cpuset
+│   ├── devicemanager
+│   │   └── checkpoint
+│   ├── memorymanager
+│   │   └── state
+│   ├── topologymanager
+│   │   └── bitmask
+│   └── util
+├── config
+├── configmap
+├── container
+│   └── testing
+├── cri
+│   ├── remote
+│   │   ├── fake
+│   │   └── util
+│   └── streaming
+│       ├── portforward
+│       └── remotecommand
+├── custommetrics
+├── dockershim
+│   ├── cm
+│   ├── libdocker
+│   │   └── testing
+│   ├── metrics
+│   ├── network
+│   │   ├── cni
+│   │   │   └── testing
+│   │   ├── hairpin
+│   │   ├── hostport
+│   │   ├── kubenet
+│   │   ├── metrics
+│   │   └── testing
+│   └── remote
+├── envvars
+├── events
+├── eviction
+│   └── api
+├── images
+├── kubeletconfig
+│   ├── checkpoint
+│   │   └── store
+│   ├── configfiles
+│   ├── status
+│   └── util
+│       ├── codec
+│       ├── equal
+│       ├── files
+│       ├── panic
+│       └── test
+├── kuberuntime
+│   └── logs
+├── leaky
+├── legacy
+├── lifecycle
+├── logs
+├── metrics
+│   └── collectors
+├── network
+│   └── dns
+├── nodeshutdown
+│   └── systemd
+├── nodestatus
+├── oom
+├── pleg
+├── pluginmanager
+│   ├── cache
+│   ├── metrics
+│   ├── operationexecutor
+│   ├── pluginwatcher
+│   │   └── example_plugin_apis
+│   │       ├── v1beta1
+│   │       └── v1beta2
+│   └── reconciler
+├── pod
+│   └── testing
+├── preemption
+├── prober
+│   ├── results
+│   └── testing
+├── qos
+├── runtimeclass
+│   └── testing
+├── secret
+├── server
+│   ├── metrics
+│   └── stats
+│       └── testing
+├── stats
+│   └── pidlimit
+├── status
+│   └── testing
+├── sysctl
+├── token
+├── types
+├── util
+│   ├── cache
+│   ├── format
+│   ├── ioutils
+│   ├── manager
+│   ├── queue
+│   ├── sliceutils
+│   └── store
+├── volumemanager
+│   ├── cache
+│   ├── metrics
+│   ├── populator
+│   └── reconciler
+└── winstats
+
+
+
 
 
 
