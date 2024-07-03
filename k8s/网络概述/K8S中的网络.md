@@ -555,14 +555,13 @@ kube-apiserver
       valid_lft forever preferred_lft forever
   ```
 
-  **flanneld**:在每个主机中运行flanneld作为agent，它会为所在主机从集群的网络地址空间中，获取一个小的网段subnet，本主机内所有容器的IP地址都将从中分配。同时Flanneld监听K8s集群数据库，为flannel.1设备提供封装数据时必要的mac，ip等网络数据信息。
-
-
+  **flanneld**: 在每个主机中运行flanneld作为agent，它会为所在主机从集群的网络地址空间中，获取一个小的网段subnet，本主机内所有容器的IP地址都将从中分配。同时Flanneld监听K8s集群数据库，为flannel.1设备提供封装数据时必要的mac，ip等网络数据信息。当flanneld启动时，它会在主机上创建一个flannel.1接口，并配置它使用VXLAN。这个配置过程告诉内核，当有数据包发送到flannel.1接口时，应该使用VXLAN协议将其封装，同样，当收到一个VXLAN报文时，内核应该将其解封装
+  	
 
   ​**疑惑**：这里对于flannel.1进行vxlan报文的封包和解包表示不敢认同，首先flannel.1即是一个tun/tap设备，这个设备负责是流量的传输，真正处理vxlan报文的应该是flanneld。
 
   **解答**：2024.05.17 这里确实是flannel.1进行vxlan报文的封包和解包，flannel.1是一个虚拟的网卡设备。一般物理网卡的数据的读写方是网线侧和内核侧，而现在flanneld充当了网线侧的功能。一般内核侧把数据发到网卡，网卡把数据沿着网线侧发走。而这里内核把数据发到虚拟网卡flannel.1，最后是flanneld读走了数据，这个数据就是网络包。
-		
+  **解答** 2024.07.3 flannel.1是一个虚拟网卡，现在从cni0网桥依据路由策略数据包路由到了flannel.1网卡中，flannel.1网卡创建的时候配置了VXLAN模块，那么从flannel.1网卡中出去的数据包在最外层需要VXLAN协议进行封装，经过VXLNA模块封装后，从flannel.1网卡出去的数据包就是【VXLAN|MAC|IP|TCP|HTTP】,正常来说网卡后面接的是网线，从网线中发出去的就是【VXLAN|MAC|IP|TCP|HTTP】数据包，但是现在flannel.1网卡后面接入的网线变成了flanneld，flanneld从flannel.1网卡中收到了数据包【VXLAN|MAC|IP|TCP|HTTP】，现在flanneld需要将数据包【VXLAN|MAC|IP|TCP|HTTP】作为一个业务数据包基于UDP协议通过node节点的网卡eth1发送到node2节点flaneld监听的8472端口中。node2的flanneld接收到业务数据包【VXLAN|MAC|IP|TCP|HTTP】，然后再将这个业务数据包发送给node2的flannel.1处理，flannel.1网卡在创建的时候配置了VXLAN模块，所以现会处理掉数据的外层VXLAN，然后再处理【MAC|IP|TCP|HTTP】一个正常的http网络数据包，flannel.1连接的是cni0网桥，按照路由策略将数据包【MAC|IP|TCP|HTTP】路由到node2的pod-n容器的eth0网卡中。	
 
 
 
@@ -594,7 +593,7 @@ kube-apiserver
   
 
 - tcpdump抓包数据分析
-
+  在node1节点9.135.91.57上抓包分析
   tcpdump -i eth1  port 8472 and  host 9.135.91.57 -w /tmp/tcpdump_save.cap
 
 
