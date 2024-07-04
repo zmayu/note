@@ -715,14 +715,16 @@ TCP端口号：
 事实上，flannel只使用了vxlan的部分功能，由于VNI被固定为1，本质上工作方式和udp backend是类似的，区别无非是将udp的proxy换成了内核中的vxlan处理模块。而原始负载由三层扩展到了二层，但是这对三层网络方案flannel是没有意义的，这么做也仅仅只是为了适配vxlan的模型。
 ```
 
+*参考资料*
+   * <a href="https://support.huawei.com/enterprise/zh/doc/EDOC1100087027">什么是VXLAN</a>
+   * <a href="https://info.support.huawei.com/info-finder/encyclopedia/zh/VLAN.html">什么是VLAN</a>
+   * <a herf="https://cloud.tencent.com/developer/article/1412795">图文详解VLAN</a>
+ 
+ 
 
-
-
-
-- 比较
+*比较*
 
   vxlan和UDP的区别是vxlan是**内核封包**，而UDP是flanneld用**户态程序封包**，所以UDP的方式性能会稍差；
-
 
 
 ##### 3.1.5存在的问题
