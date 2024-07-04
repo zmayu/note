@@ -565,7 +565,16 @@ kube-apiserver
 
 
 
-- node节点的路由表信息
+- node节点的路由表信息 
+  
+  **路由信息说明**
+  ```
+  备注说明： 路由信息中Flags表示的含义
+  "U" 代表 "Up"，意味着这条路由是活动的，可以使用。
+  "G" 代表 "Gateway"，意味着这条路由是通过网关进行的，也就是说，目标不在直接连接的网络上，需要通过一个中间设备（网关）来到达。
+  "UG" 表示这条路由是活动的，并且需要通过一个网关来到达目标。
+  
+  ```
 
   **Node1中的路由表**
 
@@ -577,6 +586,7 @@ kube-apiserver
   
   cni0是虚拟网桥，目的IP的网络地址为10.244.1.0/24的请求通过cni0网桥发送到Node1中的容器。
   目的IP的网络地址为10.244.2.0/24和10.244.0.0/24的请求发送flannel.1 
+
   ```
 
   **Node2中的路由表**
@@ -593,8 +603,8 @@ kube-apiserver
   
 
 - tcpdump抓包数据分析
-  在node1节点9.135.91.57上抓包分析
-  tcpdump -i eth1  port 8472 and  host 9.135.91.57 -w /tmp/tcpdump_save.cap
+  * 在node2节点上抓取在node1节点pod-m容器中请求node2节点pod-n容器的网络数据包。
+  * tcpdump -i eth1  port 8472 and  host 9.135.91.57 -w /tmp/tcpdump_save.cap
 
 
 
@@ -604,17 +614,19 @@ kube-apiserver
 
 ```
 MAC地址：
-	源地址：   52 24 00 ad 41 39
-	目的地址： Fe ee cf 97 ef 06
+  目的地址：   52 24 00 ad 41 39
+	源地址： Fe ee cf 97 ef 06
 IP地址
 	源IP:     09 87 5b 39 > 9.135.91.57
-	目的IP:   09 87 90 a8  > 9.135.144.168 
+	目的IP:   09 87 90 a8 > 9.135.144.168 
 UDP端口
 	源端口：   9b ef  > 39919
-  目的端口：  21 18 > 8472
+  目的端口：  21 18 > 8472  #flannel.d监听的端口
 
-	
 ```
+**疑惑** 
+  * 源MAC地址【Fe ee cf 97 ef 06】是哪里的。参考3.1.4实验的架构图，里面没有发现MAC地址Fe ee cf 97 ef 06。
+
 
 **内层协议信息**
 
@@ -631,8 +643,8 @@ VXLAN协议报文组成说明
 
 
 MAC地址：
-	 源地址: 		 2a fe 82 35 16 30
-   目的地址: 		b2 c5 b5 fe 50 b8
+    目的地址:		2a fe 82 35 16 30  #node2节点flannel.1虚拟网卡的mac地址
+    源地址:  		b2 c5 b5 fe 50 b8  #node1节点flannel.1虚拟网卡的mac地址
 ```
 
 ![image](https://github.com/zmayu/note/assets/28054451/e2688196-4ae7-42a6-b6ca-59e6d1538157)
