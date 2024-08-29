@@ -572,8 +572,9 @@ kube-apiserver
   备注说明： 路由信息中Flags表示的含义
   "U" 代表 "Up"，意味着这条路由是活动的，可以使用。
   "G" 代表 "Gateway"，意味着这条路由是通过网关进行的，也就是说，目标不在直接连接的网络上，需要通过一个中间设备（网关）来到达。
+  "H" 代表 “Host” 意味着这条路由指向一个特定的主机，而不是一个网络。
   "UG" 表示这条路由是活动的，并且需要通过一个网关来到达目标。
-  
+
   ```
 
   **Node1中的路由表**
@@ -825,6 +826,10 @@ Calico 是一种容器之间互通的网络方案。在虚拟化平台中，比�
   	看到eth0的IP是/32主机地址，表示将容器A作为一个单点的局域网    
   yum install -y ethtool
   ethtool -S eth0  //可以看到veth pair的对端
+    #可以看到该容器中et0网卡veth pair在宿主机节点上对应pair.如下所示27，可以在宿主机上执行ip add看到对应的pair
+    [root@master /proc/22619/root]# ethtool -S eth0
+      NIC statistics:
+        peer_ifindex: 27
   ```
 
   - 路由信息
