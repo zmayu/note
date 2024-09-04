@@ -637,10 +637,15 @@ UDP端口
 VXLAN header
 	:08 00 00 00 00 00 01 00
 VXLAN协议报文组成说明
-	VXLAN Header由8个byte组成
+	VXLAN Header由8个byte组成。组成顺序：Flags[8]bit+Reserved[24]bit+VNI[24]bit+Reserved[8]bit
 	Flags:占 8bits，具体是 RRRRIRRR，其中 I 必须设置为 1，表示是是一个合法的 VxLAN ID，其它 7bits 的 R 作为保留字段并且设置为 0。
 	VNI（VxLAN Network Identifie）：占 24bits，VxLAN 的 ID 标识，这个字段就对比于 12bits 的 VLAN ID，支持 ID 个数扩展为 2^24 = 16777216，约等于 16M 个。
 	Reserved：有两个字段，分别占 24 bits 和 8 bits，作为保留字段并且设置为 0。
+	Flags：08
+	Reserved：00 00 00
+	VNI: 00 00 01
+	Reserved：00
+
 
 
 MAC地址：
